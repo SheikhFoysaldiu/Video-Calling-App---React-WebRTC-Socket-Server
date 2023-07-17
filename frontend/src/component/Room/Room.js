@@ -1,7 +1,7 @@
 // Room.js
 import React, { useCallback, useContext, useEffect,useRef } from 'react';
 import "./Room.css";
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SocketContext } from "../../context/context";
 
 
@@ -14,9 +14,10 @@ const Room = () => {
     sendStreamToPeer,
     handleNewUserJoined,
     setRemoteStream,
-    remoteVideo
+    remoteVideo,
+    setStream
   } = useContext(SocketContext);
-
+  const navigate = useNavigate();
   const handleNewUserJoinedCallback = useCallback((data) => {
     handleNewUserJoined(data);
     console.log("data",data)
@@ -44,19 +45,57 @@ const Room = () => {
   useEffect(() => {
     if (stream) {
       userVideoRef.current.srcObject = stream;
-
+      console.log("stream",stream)
     }
   }, [stream]);
-
   useEffect(() => {
     if (remoteStream) {
- 
       remoteVideoRef.current.srcObject = remoteStream;
-      document.getElementById('user-2').style.display = 'block';
-      document.getElementById('user-1').classList.add('smallFrame');
-     
+  
+      const user1Element = document.getElementById('user-1');
+      const user2Element = document.getElementById('user-2');
+      if (user1Element && user2Element) {
+        user2Element.style.display = 'block';
+        user1Element.classList.add('smallFrame');
+      }
     }
   }, [remoteStream]);
+
+
+  const handleMicToggle = () => {
+    const value = stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled;
+    if(value)
+    {
+      document.getElementById('mic-btn').style.backgroundColor = 'rgb(179, 102, 249, .9)'
+    }
+    else
+    {
+      document.getElementById('mic-btn').style.backgroundColor = 'rgb(255, 80, 80)'
+    }
+  };
+
+  const handleVideoToggle = () => {
+    const value = stream.getVideoTracks()[0].enabled = !stream.getVideoTracks()[0].enabled;
+    if(value)
+    {
+      document.getElementById('camera-btn').style.backgroundColor = 'rgb(179, 102, 249, .9)'
+    }
+    else
+    {
+      document.getElementById('camera-btn').style.backgroundColor = 'rgb(255, 80, 80)'
+    }
+    
+
+
+  }
+
+  const handleLeave = () => {
+  setRemoteStream  (null);
+  setStream(null);
+  navigate('/');
+
+  }
+
   return (
     <>
  <div id="videos">
@@ -84,19 +123,19 @@ const Room = () => {
       </div>
 
       <div id="controls">
-        <div className="control-container" id="camera-btn">
+        <div onClick={handleVideoToggle} className="control-container" id="camera-btn">
           <img alt='camera' src={require('../../icons/camera.png')} />
         </div>
 
-        <div className="control-container" id="mic-btn">
+        <div onClick={handleMicToggle} className="control-container" id="mic-btn">
           <img alt='camera' src={require('../../icons/mic.png')} />
         </div>
 
-        <Link to="/">
-          <div className="control-container" id="leave-btn">
+        
+          <div onClick={handleLeave} className="control-container" id="leave-btn">
             <img alt='camera' src={require('../../icons/phone.png')} />
           </div>
-        </Link>
+        
       </div>
     </>
   );
