@@ -10,7 +10,7 @@ const SocketContext = createContext();
 
 
 
-const socket = io('http://localhost:8000');
+const socket = io('https://videocalling-g7d4.onrender.com');
 
 const ContextProvider = ({ children }) => {
   const navigate = useNavigate();
