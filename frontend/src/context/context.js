@@ -1,5 +1,5 @@
 // context.js
-import React, { createContext, useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
@@ -9,8 +9,6 @@ const SocketContext = createContext();
 
 
 
-
-const socket = io('http://localhost:8000');
 
 const ContextProvider = ({ children }) => {
   const navigate = useNavigate();
@@ -33,6 +31,10 @@ const ContextProvider = ({ children }) => {
     };
   }, []);
 
+  const socket =  useMemo(() => {
+    return io('http://localhost:8000')
+  }, []);
+
   const peer = useMemo(() => {
     return new RTCPeerConnection(servers);
   }, [servers]);
@@ -45,7 +47,7 @@ const ContextProvider = ({ children }) => {
 
   const JoinRoom = useCallback(({ roomID, emailID }) => {
     socket.emit('room:join', { roomID, emailID });
-  }, []);
+  }, [socket]);
 
   const handleJoinRoom = useCallback((data) => {
     const { roomID } = data;
@@ -71,7 +73,7 @@ const ContextProvider = ({ children }) => {
     const offer = await createOffer();
     socket.emit('send-offer', { offer, emailID });
     setRemoteEmail(emailID);
-  }, [createOffer]);
+  }, [createOffer,socket]);
 
   const handleIncomingOffer = useCallback(async (data) => {
     const { offer, from } = data;
@@ -79,7 +81,7 @@ const ContextProvider = ({ children }) => {
     const answer = await createAnswer(offer);
     socket.emit('send-answer', { answer, emailID: from });
     setRemoteEmail(from);
-  }, [createAnswer]);
+  }, [createAnswer,socket]);
 
   const setRemoteAnswer = useCallback(async (answer) => {
     await peer.setRemoteDescription(answer);
@@ -103,7 +105,7 @@ const ContextProvider = ({ children }) => {
     } catch (error) {
       console.error('Error creating or setting local description:', error);
     }
-  },[peer, remoteEmail])
+  },[peer, remoteEmail,socket])
 
   const getUserMediaStream = useCallback(async () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -143,7 +145,7 @@ const ContextProvider = ({ children }) => {
     return () => {
       socket.off('room:join', handleJoinRoom);
     };
-  }, [handleJoinRoom]);
+  }, [handleJoinRoom,socket]);
 
   useEffect(() => {
     socket.on('user:joined', handleNewUserJoined);
@@ -154,7 +156,7 @@ const ContextProvider = ({ children }) => {
       socket.off('receive-offer', handleIncomingOffer);
       socket.off('receive-answer', handleIncomingAnswer);
     };
-  }, [handleNewUserJoined, handleIncomingOffer, handleIncomingAnswer]);
+  }, [handleNewUserJoined, handleIncomingOffer, handleIncomingAnswer,socket]);
 
   return (
     <SocketContext.Provider value={{
