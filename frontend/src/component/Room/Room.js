@@ -18,17 +18,13 @@ const Room = () => {
     setStream
   } = useContext(SocketContext);
   const navigate = useNavigate();
-  const handleNewUserJoinedCallback = useCallback((data) => {
-    handleNewUserJoined(data);
-    console.log("data",data)
+  
+  
+  useEffect(() => {
+    handleNewUserJoined("");
   }, [handleNewUserJoined]);
 
-  useEffect(() => {
-    window.addEventListener('user:joined', handleNewUserJoinedCallback);
-    return () => {
-      window.removeEventListener('user:joined', handleNewUserJoinedCallback);
-    }
-  }, [handleNewUserJoinedCallback]);
+
 
   useEffect(() => {
     getUserMediaStream();

@@ -32,7 +32,7 @@ const ContextProvider = ({ children }) => {
   }, []);
 
   const socket =  useMemo(() => {
-    return io('http://localhost:8000')
+    return io('https://videocalling-g7d4.onrender.com')
   }, []);
 
   const peer = useMemo(() => {
